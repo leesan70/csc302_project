@@ -1,0 +1,80 @@
+version: "3"
+services:
+  app:
+    container_name: app
+    build: 
+      context: .
+      dockerfile: ./Dockerfile
+      args: 
+        - SERVICE_NAME
+        - DB_HOST
+        - ES_HOST
+    entrypoint: 
+      - /bin/sh
+      - "-c"
+      - "wait && node /app/dist/server.js"
+    ports:
+      - 3001:3001
+    expose: 
+      - "3001"
+    networks: 
+      - bridge-net
+    links:
+      - mongo   
+      - elastic 
+      - dejavu
+    depends_on: 
+      - mongo
+      - elastic
+      - dejavu
+    environment: 
+      WAIT_HOSTS: mongo:27017, elastic:9200
+  mongo:
+    container_name: mongo
+    image: mongo
+    volumes: 
+      - ./data:/data/db
+    ports:
+    - 27017:27017
+    networks: 
+      - bridge-net
+  elastic:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.2
+    container_name: elastic
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01
+      - cluster.initial_master_nodes=es01
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - http.port=9200      
+      - http.cors.enabled=true      
+      - http.cors.allow-credentials=true
+      - "http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization"
+      - "http.cors.allow-origin=http://localhost:1358,http://127.0.0.1:1358"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - data01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - bridge-net
+  dejavu:
+    image: appbaseio/dejavu:3.0.0-alpha
+    container_name: dejavu
+    ports:
+     - "1358:1358"
+    links:
+      - elastic
+    networks:
+      - bridge-net
+volumes:
+  data01:
+    driver: local
+networks:
+  bridge-net:
+    driver: bridge

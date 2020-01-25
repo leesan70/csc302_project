@@ -1,0 +1,55 @@
+.previewWindow {
+  display:flex;
+  flex-direction: row;
+  max-height:calc(100vh - 150px);
+  overflow:hidden;
+  min-height:200px;
+}
+
+.previewWindow div {
+  min-width:33%;
+}
+
+.previewWindow pre {
+  max-height:100%;
+  display: block;
+  padding: 10px 30px;
+  margin: 0;
+  overflow: scroll;
+  text-align:left;
+  white-space: pre-wrap;       /* Since CSS 2.1 */
+  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;      /* Opera 4-6 */
+  white-space: -o-pre-wrap;    /* Opera 7 */
+  word-wrap: break-word;       /* Internet Explorer 5.5+ */
+  word-break: keep-all;
+  tab-size:2;
+}
+
+.formViewer {
+  width:100vw;
+}
+
+.form {
+  overflow-y:scroll;
+}
+
+.form div, .form h2 {
+  text-align:left;
+}
+
+.testHeader {
+  background-color:#294691;
+  padding:35px 25px;
+  text-align:center;
+}  
+
+.testHeader p {
+  color:#ddd;
+}
+
+.col, .container, .jumbotron {
+  padding:0 !important;
+  margin:0 !important;
+}
+

@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+      "jsx": "react",
+      "module": "commonjs",
+      "target": "es6",
+      "allowSyntheticDefaultImports": true,
+      "baseUrl": ".",
+      "paths": {
+        "Actions": ["./Actions"],
+        "App": ["./App"],
+        "Components": ["./Components"],
+        "Constants": ["./Constants"],
+        "Helpers": ["./Helpers"],
+        "Services" : ["./Services"],
+        "Reducers" : ["./Reducers"],
+        "Utils" : ["./Utils"],
+        "Views" : ["./Views"]
+      }
+    },
+    "exclude": ["Tests"]
+}

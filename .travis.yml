@@ -1,0 +1,32 @@
+language: node_js
+
+services:
+  - mongodb
+
+node_js:
+  - "10"
+
+install:
+  - npm install
+
+before_script:
+  - sleep 15
+  - mongo csc302 --eval 'db.createUser({user:"travis",pwd:"test",roles:["readWrite"]});'
+  - echo -e 'API_URL='${API_URL}'\n' > ${TRAVIS_BUILD_DIR}/.env
+  - echo -e 'DB_HOST='${DB_HOST}'\nDB_USER='${DB_USER}'\nDB_NAME='${DB_NAME}'\nES_HOST='${ES_HOST}'\n' > ${TRAVIS_BUILD_DIR}/.env.server
+  - echo -e 'DB_HOST='${DB_HOST}'\nDB_USER='${DB_USER}'\nDB_NAME='${DB_NAME}'\nES_HOST='${ES_HOST}'\n' > ${TRAVIS_BUILD_DIR}/.env.server.test
+
+jobs:
+  include:
+  - stage: Tests
+    name: Unit Tests
+    script: npm test
+  - stage: Deployment
+    script: ./cleanup.sh
+    deploy:
+      provider: heroku
+      api-key: ${HEROKU_API_KEY}
+      app: csc302-ehealth-team4
+      skip_cleanup: true
+      on:
+        branch: dev

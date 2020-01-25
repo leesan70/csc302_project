@@ -1,0 +1,470 @@
+openapi: 3.0.0
+info:
+  description: 'API for the CSC302 Cancer Care Ontario SDC form management and submission portal'
+  version: 1.0.0
+  title: 'CSC302-Team 4 SDC App API Spec'
+tags:
+- name: Form
+  description: 'Manage SDCForms'
+  
+- name: Response
+  description: 'Handle form responses and viewing of responses'
+
+paths:
+  /form:
+    post:
+      tags:
+      - Form
+      operationId: createForm
+      summary: 'Submit an XML to convert to an SDCForm'
+      requestBody:
+        description: 'XML data and diagnosticProcedureID for new form'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FormXML'
+      responses:
+        405:
+          description: Invalid input
+        200:
+          description: 200 response 
+    get:
+      tags:
+      - Form
+      operationId: listForms
+      summary: 'Get a list of all SDCForms available for retrieval'
+      responses:
+        200:
+          description: 200 response
+          content:
+            application/json:
+              examples: 
+                all:
+                  value: {
+                    "forms": [
+                      {
+                        "diagnosticProcedureID" : "0",
+                        "title" : "formA"
+                      },
+                      {
+                        "diagnosticProcedureID" : "0",
+                        "title" : "formB"
+                      },
+                      ]
+                 }
+          
+  /form/{diagnosticProcedureID}:
+    get:
+      tags:
+      - Form
+      operationId: getFormByID
+      summary: 'Retrieve a specific SDCForm'
+      parameters:
+      - in: path
+        name: diagnosticProcedureID
+        description: 'DiagnosticProcedureID of an SDCForm'
+        required: true
+        schema:
+          type: string
+      responses:
+        404:
+          description: 404 response
+        200:
+          description: 200 response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SDCForm'
+              examples:
+                formA:
+                  value: {
+                    "id": "0",
+                    "title" : "formA",
+                    "sections": [
+                      "SectionA",
+                      "SectionB"
+                    ],
+                    "nodes": [
+                      {
+                        "id": "0999",
+                        "title" : "What did you have for breakfast?",
+                        "dependencies" : [{"nodeID":"1234", "choiceID": "9123"}],
+                        "choices": [
+                          {
+                            "referenceID": "9123",
+                            "title": "Cereal"
+                          },
+                          {
+                            "referenceID": "1111",
+                            "title": "Eggs and Toast"
+                          }
+                          ]
+                      },
+                      {
+                        "id": "1234",
+                        "title" : "What kind of cereal?",
+                        "field": {
+                          "type": "string",
+                          "required": "true"
+                        }
+                      }
+                    ]
+                  } 
+    delete:
+      tags:
+      - Form
+      operationId: deleteForm
+      summary: 'Delete an SDCForm'
+      parameters:
+        - in: path
+          name: diagnosticProcedureID
+          description: DiagnosticProcedureID of an SDCForm
+          required: true
+          schema:
+            type: string
+
+      responses:
+        200:
+          description: 200 response
+        500:
+          description: 500 response
+          
+  /response:
+    post:
+      tags:
+      - Response
+      operationId: startResponse
+      summary: 'Start a new SDCFormResponse'
+      requestBody:
+        description: 'The form response parameters'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SDCFormResponse'
+      responses:
+        200:
+          description: 200 response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SDCFormResponse'
+              examples:
+                newResponse:
+                  value: {
+                    "_id": "1439vsdj90320jf90m34",
+                    "diagnosticProcedureID": "some_procedure",
+                    "patientID": "098",
+                    "formFillerID": "123"
+                  }   
+        500:
+          description: 500 response
+    put: 
+      tags:
+      - Response
+      operationId: submitForm
+      requestBody:
+        description: 'The form response to submit'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SDCFormResponse'
+      responses:
+        200:
+          description: 200 response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SDCPersistentLink'
+              examples:
+                submission:
+                  value: {
+                    "link": "kasfndsk"
+                  }   
+        500:
+          description: 500 response
+            
+  /response/{responseID}:
+    get: 
+      tags:
+      - Response
+      operationId: getResponses
+      summary: 'Get a specific SDCFormResponse'
+      parameters:
+      - in: path
+        name: responseID
+        description: 'The ID of the SDCFormResponse'
+        required: true
+        schema:
+          type: string
+        
+      responses:
+        404:
+          description: 404 response
+        200:
+          description: 200 response
+          content: 
+            application/pdf:
+              schema:
+                $ref: '#/components/schemas/SDCFormResponse'
+
+  /response/search:
+    get:
+      tags:
+      - Response
+      operationId: searchResponses
+      summary: 'Search for an existing SDCFormResponse'
+      parameters:
+      - in: query
+        name: diagnosticProcedureID
+        description: 'DiagnosticProcedureID of an SDCFormResponse as a persistent rendering'
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: patientID
+        description: 'PatientID of the specific SDCFormResponse'
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: formFillerID
+        description: 'FormFillerID of the specific SDCFormResponse'
+        required: false
+        schema:
+          type: string
+      responses:
+        404:
+          description: 404 response
+        200:
+          description: 200 response
+          content: 
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SDCFormResponse'
+                  
+  /response/answer:
+    post:
+      tags:
+      - Response
+      operationId: submitAnswer
+      summary: 'Submit an SDCFormAnswer for an SDCResponse'
+      requestBody:
+        description: 'The SDCFormAnswer to add'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SDCFormAnswer'
+      responses:
+        200:
+          description: 200 response
+        500:
+          description: 500 response
+          
+    delete:
+      tags:
+      - Response
+      operationId: deleteAnswer
+      summary: 'Delete an SDCFormAnswer from an SDCResponse'
+      parameters:
+      - in: query
+        name: responseID
+        description: 'The ID of the SDCFormResponse to remove the answer from'
+        required: true
+        schema:
+          type: string
+          
+      - in: query
+        name: nodeID
+        description: 'The ID of the SDCFormNode the answer refers to. Used in conjuction with responseID to find answer to delete'
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: choiceID
+        description: 'The id of the SDCFormChoice if we are deleting a specific choice and not the entire answer'
+        required: false
+        schema:
+          type: string
+      responses:
+        200:
+          description: 200 response
+        404:
+          description: 404 response
+        500:
+          description: 500 response
+      
+  /response/persistent/{link}:
+    get:
+      tags:
+      - Response
+      operationId: getPersistentForm
+      summary: 'Render a persistent SDCFormResponse'
+      parameters:
+      - in: path
+        name: link
+        description: 'Locator for of SDCPersistentLink'
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: 200 response
+          content: 
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            text/plain:
+              schema:
+                type: string
+        500:
+          description: 500 response
+          
+components:
+  schemas:
+    FormXML:
+      type: object
+      properties:
+        diagnosticProcedureID:
+          type: string
+        xmlData:
+          type: string
+          
+    SDCForm:
+      type: object
+      properties:
+        diagnosticProcedureID:
+          type: string
+          description: 'ID of the procedure this form corresponds to'
+        version:
+          type: integer
+        active:
+          type: boolean
+        title:
+          type: string
+        sections:
+          type: array
+          items:
+            type: string
+        nodes:
+          type: array
+          description: 'The array of SDCFormNodes contained in this form'
+          items:
+            $ref: '#/components/schemas/SDCFormNode'
+    SDCFormNode:
+      type: object
+      properties: 
+        title:
+          type: string
+        section:
+          type: string
+        referenceID:
+          type: string
+        dependencies:
+          type: array
+          items:
+            $ref: '#/components/schemas/SDCNodeDependency'
+        field:
+          $ref: '#/components/schemas/SDCFormField'
+        choices:
+          type: array
+          items:
+            $ref: '#/components/schemas/SDCFormChoice'
+        maxSelections:
+          type: integer
+
+    SDCNodeDependency:
+      type: object
+      properties:
+        nodeID:
+          type: string
+        choiceID:
+          type: string
+          
+    SDCFormField:
+      type: object
+      properties:
+        type:
+          type: string
+        req:
+          type: boolean
+        textAfter:
+          type: string
+        units:
+          type: string
+        minInclusive:
+          type: string
+        maxInclusive:
+          type: string
+
+    SDCFormChoice:
+      type: object
+      properties:
+        title:
+          type: string
+        referenceID:
+          type: string
+        selectionDeselectsSiblings:
+          type: boolean
+        selected:
+          type: boolean
+        field: 
+          $ref: '#/components/schemas/SDCFormField'
+
+    SDCFormResponse:
+      type: object
+      properties:
+        diagnosticProcedureID:
+          type: string
+          description: 'ID of the procedure this response corresponds to'
+        formVersion:
+          type: integer
+          description: 'Which version of the form was filled out'
+        patientID:
+          type: string
+          description: 'The patient this form was filled out for'
+        formFillerID:
+          type: string
+          description: 'The clinitian who filled out this form'
+    
+    SDCPersistentLink:
+      type: object
+      properties:
+        link:
+          type: string
+        responseID:
+          type: string
+          
+    SDCFormAnswer:
+      type: object
+      properties:
+        responseID:
+          type: string
+        nodeID: 
+          type: string
+        field:
+          $ref: '#/components/schemas/SDCFieldAnswer'
+        choices:
+          type: array
+          items:
+            $ref: '#/components/schemas/SDCChoiceAnswer'
+    
+    SDCFieldAnswer:
+      type: object
+      properties:
+        stringValue:
+          type: string
+        numberValue:
+          oneOf:
+           - type: number
+           - type: integer
+           
+    SDCChoiceAnswer:
+      type: object
+      properties:
+        choiceID:
+          type: string
+        field:
+          $ref: '#/components/schemas/SDCFieldAnswer'

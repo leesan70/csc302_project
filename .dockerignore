@@ -1,0 +1,10 @@
+**
+!forms
+!public
+!server
+!src
+!package*.json
+!nodemon.json
+!webpack*
+!.eslintrc.js
+!.babelrc
